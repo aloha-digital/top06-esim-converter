@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eSIM TXT naar PDF Converter - LycaMobile</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            padding: 40px 20px;
+            max-width: 600px;
+            margin: 0 auto;
+            background: #fafafa;
+        }
+        h1 { font-size: 24px; margin-bottom: 10px; }
+        .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
+        .upload-area {
+            border: 2px dashed #ddd;
+            padding: 40px;
+            text-align: center;
+            cursor: pointer;
+            margin-bottom: 20px;
+            background: #fff;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+        .upload-area:hover { border-color: #000; }
+        .upload-area.dragover { border-color: #000; background: #f5f5f5; }
+        button {
+            background: #000;
+            color: #fff;
+            border: none;
+            padding: 12px 24px;
+            font-size: 14px;
+            cursor: pointer;
+            width: 100%;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        button:hover:not(:disabled) { background: #333; }
+        button:disabled { background: #ccc; cursor: not-allowed; }
+        .file-list {
+            margin: 20px 0;
+            padding: 0;
+            list-style: none;
+        }
+        .file-list li {
+            padding: 12px;
+            background: #fff;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            font-size: 14px;
+            border: 1px solid #eee;
+        }
+        .status {
+            margin-top: 20px;
+            padding: 12px;
+            background: #fff;
+            font-size: 14px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+        }
+        .hidden { display: none; }
+        .footer {
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #ddd;
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+        }
+    </style>
+</head>
+<body>
+    <h1>eSIM TXT → PDF Converter</h1>
+    <div class="subtitle">Voor LycaMobile eSIM bestanden</div>
+    
+    <div class="upload-area" id="dropZone">
+        <p><strong>Sleep TXT bestanden hierheen</strong></p>
+        <p style="font-size: 14px; color: #666; margin-top: 8px;">of klik om te selecteren</p>
+        <input type="file" id="fileInput" accept=".txt" multiple class="hidden">
+    </div>
+    
+    <ul class="file-list" id="fileList"></ul>
+    
+    <button id="convertBtn" disabled>PDFs Genereren & Downloaden als ZIP</button>
+    
+    <div class="status hidden" id="status"></div>
+
+    <div class="footer">
+        Tool voor Top06 / SlimSim • Alle verwerking gebeurt lokaal in je browser
+    </div>
+
+    <script>
+        const { jsPDF } = window.jspdf;
+        let selectedFiles = [];
+
+        const dropZone = document.getElementById('dropZone');
+        const fileInput = document.getElementById('fileInput');
+        const fileList = document.getElementById('fileList');
+        const convertBtn = document.getElementById('convertBtn');
+        const status = document.getElementById('status');
+
+        // Click to select files
+        dropZone.addEventListener('click', () => fileInput.click());
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.classList.add('dragover');
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.classList.remove('dragover');
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            dropZone.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        fileInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            selectedFiles = Array.from(files).filter(f => f.name.endsWith('.txt'));
+            updateFileList();
+            convertBtn.disabled = selectedFiles.length === 0;
+        }
+
+        function updateFileList() {
+            fileList.innerHTML = '';
+            if (selectedFiles.length === 0) return;
+            
+            selectedFiles.forEach(file => {
+                const li = document.createElement('li');
+                li.textContent = `✓ ${file.name}`;
+                fileList.appendChild(li);
+            });
+        }
+
+        function parseESIM(text) {
+            const lines = text.split('\n');
+            const data = {};
+            
+            lines.forEach(line => {
+                // Split only on FIRST colon
+                const colonIndex = line.indexOf(':');
+                if (colonIndex > -1) {
+                    const key = line.substring(0, colonIndex).trim();
+                    const value = line.substring(colonIndex + 1).trim();
+                    if (key && value) {
+                        data[key] = value;
+                    }
+                }
+            });
+            
+            return data;
+        }
+
+        async function generateQRCode(text) {
+            return new Promise((resolve, reject) => {
+                // Create completely unique container
+                const containerId = 'qr-container-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
+                const container = document.createElement('div');
+                container.id = containerId;
+                container.style.position = 'absolute';
+                container.style.left = '-99999px';
+                container.style.top = '-99999px';
+                document.body.appendChild(container);
+                
+                try {
+                    // Create new QR code instance
+                    new QRCode(container, {
+                        text: text,
+                        width: 512,
+                        height: 512,
+                        correctLevel: QRCode.CorrectLevel.M
+                    });
+                    
+                    // Wait for QR code to render
+                    setTimeout(() => {
+                        try {
+                            const canvas = container.querySelector('canvas');
+                            if (!canvas) {
+                                throw new Error('Canvas niet gevonden');
+                            }
+                            
+                            const dataUrl = canvas.toDataURL('image/png');
+                            
+                            // Cleanup
+                            if (container.parentNode) {
+                                document.body.removeChild(container);
+                            }
+                            
+                            resolve(dataUrl);
+                        } catch (error) {
+                            console.error('QR Code generatie fout:', error, 'voor tekst:', text.substring(0, 50));
+                            if (container.parentNode) {
+                                document.body.removeChild(container);
+                            }
+                            reject(error);
+                        }
+                    }, 300);
+                } catch (error) {
+                    console.error('QR Code creatie fout:', error);
+                    if (container.parentNode) {
+                        document.body.removeChild(container);
+                    }
+                    reject(error);
+                }
+            });
+        }
+
+        async function createPDF(esimData, filename) {
+            const doc = new jsPDF();
+            
+            // Debug: log activation code
+            console.log('PDF voor:', filename);
+            console.log('Activation code:', esimData.Activation);
+            
+            // Title
+            doc.setFontSize(20);
+            doc.text('Lycamobile eSIM', 105, 20, { align: 'center' });
+            
+            // Generate QR Code
+            const qrDataUrl = await generateQRCode(esimData.Activation);
+            doc.addImage(qrDataUrl, 'PNG', 55, 35, 100, 100);
+            
+            // Instructions
+            doc.setFontSize(11);
+            doc.text('Scan deze QR code met je telefoon om de eSIM te activeren', 105, 145, { align: 'center' });
+            
+            // eSIM Details
+            doc.setFontSize(12);
+            doc.setFont(undefined, 'bold');
+            doc.text('eSIM Gegevens', 20, 165);
+            
+            doc.setFont(undefined, 'normal');
+            doc.setFontSize(10);
+            
+            let y = 175;
+            const lineHeight = 8;
+            
+            doc.text(`ICCID:`, 20, y);
+            doc.text(esimData.ICCID || 'N/A', 50, y);
+            y += lineHeight;
+            
+            doc.text(`PIN:`, 20, y);
+            doc.text(esimData.PIN || 'N/A', 50, y);
+            y += lineHeight;
+            
+            doc.text(`PUK:`, 20, y);
+            doc.text(esimData.PUK || 'N/A', 50, y);
+            y += lineHeight;
+            
+            if (esimData.PIN2) {
+                doc.text(`PIN2:`, 20, y);
+                doc.text(esimData.PIN2, 50, y);
+                y += lineHeight;
+            }
+            
+            if (esimData.PUK2) {
+                doc.text(`PUK2:`, 20, y);
+                doc.text(esimData.PUK2, 50, y);
+                y += lineHeight;
+            }
+            
+            // Activation Code (for reference)
+            y += 5;
+            doc.setFontSize(8);
+            doc.text('Activatie Code:', 20, y);
+            y += 5;
+            const activationLines = doc.splitTextToSize(esimData.Activation, 170);
+            doc.text(activationLines, 20, y);
+            
+            return doc;
+        }
+
+        convertBtn.addEventListener('click', async () => {
+            convertBtn.disabled = true;
+            status.classList.remove('hidden');
+            status.textContent = 'Bezig met verwerken...';
+            
+            try {
+                const zip = new JSZip();
+                
+                for (let i = 0; i < selectedFiles.length; i++) {
+                    const file = selectedFiles[i];
+                    status.textContent = `Verwerken: ${i + 1}/${selectedFiles.length} - ${file.name}`;
+                    
+                    const text = await file.text();
+                    const esimData = parseESIM(text);
+                    const pdf = await createPDF(esimData, file.name);
+                    
+                    const pdfBlob = pdf.output('blob');
+                    const pdfFilename = file.name.replace('.txt', '.pdf');
+                    zip.file(pdfFilename, pdfBlob);
+                }
+                
+                status.textContent = 'PDFs aanmaken...';
+                const zipBlob = await zip.generateAsync({ type: 'blob' });
+                
+                // Download ZIP
+                const url = URL.createObjectURL(zipBlob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `lycamobile-esim-pdfs-${new Date().toISOString().split('T')[0]}.zip`;
+                a.click();
+                URL.revokeObjectURL(url);
+                
+                status.textContent = `✓ Klaar! ${selectedFiles.length} PDFs gedownload als ZIP`;
+                
+            } catch (error) {
+                status.textContent = `✗ Fout: ${error.message}`;
+                console.error(error);
+            } finally {
+                convertBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+</html>
