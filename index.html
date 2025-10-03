@@ -1,33 +1,13 @@
-<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/1999/REC-html401-19991224/strict.dtd">
-<html>
+<!DOCTYPE html>
+<html lang="nl">
 <head>
-<meta http-equiv=Content-Type content="text/html; charset=UTF-8">
-<title>Exported from Notepad Next</title>
-<!--StartFragment-->
-<style type="text/css">
-div.main {
-  white-space: pre;
-  line-height: 1;
-}
-.s0 {
-  font-family: 'Courier New';
-  font-size: 15pt;
-  color: rgb(0, 0, 0);
-  background: rgb(255, 255, 255);
-}
-</style>
-</head>
-<body>
-<div class="main"></span><span class="s0">&lt;!DOCTYPE html&gt;
-&lt;html lang="nl"&gt;
-&lt;head&gt;
-    &lt;meta charset="UTF-8"&gt;
-    &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
-    &lt;title&gt;eSIM TXT naar PDF Converter - LycaMobile&lt;/title&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"&gt;&lt;/script&gt;
-    &lt;script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"&gt;&lt;/script&gt;
-    &lt;style&gt;
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>eSIM TXT naar PDF Converter - LycaMobile</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
         body { 
             font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -103,37 +83,37 @@ div.main {
         .upload-heading {
           font-weight: 600;
         }
-    &lt;/style&gt;
-&lt;/head&gt;
-&lt;body&gt;
-    &lt;h1&gt;eSIM TXT â PDF Converter&lt;/h1&gt;
-    &lt;div class="subtitle"&gt;Voor LycaMobile eSIM bestanden&lt;/div&gt;
+    </style>
+</head>
+<body>
+    <h1>eSIM TXT → PDF Converter</h1>
+    <div class="subtitle">Voor LycaMobile eSIM bestanden</div>
     
-    &lt;div class="upload-area" id="dropZone"&gt;
-        &lt;p class="upload-heading"&gt;Sleep TXT bestanden hierheen&lt;/p&gt;
-        &lt;p style="font-size: 14px; color: #666; margin-top: 8px;"&gt;of klik om te selecteren&lt;/p&gt;
-        &lt;input type="file" id="fileInput" accept=".txt" multiple class="hidden"&gt;
-    &lt;/div&gt;
+    <div class="upload-area" id="dropZone">
+        <p class="upload-heading">Sleep TXT bestanden hierheen</p>
+        <p style="font-size: 14px; color: #666; margin-top: 8px;">of klik om te selecteren</p>
+        <input type="file" id="fileInput" accept=".txt" multiple class="hidden">
+    </div>
     
-    &lt;ul class="file-list" id="fileList"&gt;&lt;/ul&gt;
+    <ul class="file-list" id="fileList"></ul>
     
-    &lt;button id="convertBtn" disabled&gt;PDFs Genereren &amp; Downloaden als ZIP&lt;/button&gt;
+    <button id="convertBtn" disabled>PDFs Genereren & Downloaden als ZIP</button>
     
-    &lt;div class="status hidden" id="status"&gt;&lt;/div&gt;
+    <div class="status hidden" id="status"></div>
 
-    &lt;div class="footer"&gt;
-        &lt;svg class="aloha-logo-footer" viewBox="0 0 958 262" xmlns="http://www.w3.org/2000/svg"&gt;
-          &lt;path d="M538,1v85c5.68-1.83,10.77-5.16,16.46-7.04,57.47-18.96,116.31,22.58,119.59,82.49l-.05,97.55h-46v-98.5c0-5.62-5.17-16.75-8.57-21.43-18.1-24.89-53.59-24.7-72.44-.58-3.6,4.6-8.99,17.35-8.99,23.01v97.5h-46V1h46Z"/&gt;
-          &lt;path d="M835,259v-10s-20.99,8.51-20.99,8.51c-71.53,20.44-136.82-43.48-116.73-115.73,8.66-31.15,34.45-56.15,65.72-64.28,19.97-5.19,40.82-3.65,60,4.01,3.27,1.31,7.72,4.62,10.53,5.48,1.76.54,1.43-.24,1.48-1.47.12-2.83-.09-5.69,0-8.51h45v182h-45ZM835.14,167.87c0-26.57-21.54-48.11-48.11-48.11s-48.11,21.54-48.11,48.11,21.54,48.11,48.11,48.11,48.11-21.54,48.11-48.11Z"/&gt;
-          &lt;path d="M143,259v-10c-1.17-1.17-10.82,4.62-13.01,5.49-51.77,20.67-110-7.26-125.26-60.72C-15.64,122.43,50.44,57.77,121.22,78.28l21.77,8.72v-10h45v182h-45ZM143,223v-59.5c0-3.95-3.8-14.39-5.81-18.19-18.09-34.19-68.13-33.8-85.59.78-18.73,37.09,15.11,78.87,55.44,68.44,6.47-1.68,11.76-6.5,18.43-5.49,4.66.71,10.63,9.21,14.53,12.46.63.52,2.19,2.38,3,1.5Z"/&gt;
-          &lt;path d="M470.88,167.91c0,51.63-41.86,93.49-93.49,93.49s-93.49-41.86-93.49-93.49,41.86-93.49,93.49-93.49,93.49,41.86,93.49,93.49ZM425.47,167.95c0-26.58-21.55-48.13-48.13-48.13s-48.13,21.55-48.13,48.13,21.55,48.13,48.13,48.13,48.13-21.55,48.13-48.13Z"/&gt;
-          &lt;rect x="217" y="1" width="45" height="258"/&gt;
-          &lt;circle cx="929.3" cy="233.71" r="27.66"/&gt;
-        &lt;/svg&gt;
-        &lt;div&gt;Tool voor Top06 â¢ Alle verwerking gebeurt lokaal in je browser&lt;/div&gt;
-    &lt;/div&gt;
+    <div class="footer">
+        <svg class="aloha-logo-footer" viewBox="0 0 958 262" xmlns="http://www.w3.org/2000/svg">
+          <path d="M538,1v85c5.68-1.83,10.77-5.16,16.46-7.04,57.47-18.96,116.31,22.58,119.59,82.49l-.05,97.55h-46v-98.5c0-5.62-5.17-16.75-8.57-21.43-18.1-24.89-53.59-24.7-72.44-.58-3.6,4.6-8.99,17.35-8.99,23.01v97.5h-46V1h46Z"/>
+          <path d="M835,259v-10s-20.99,8.51-20.99,8.51c-71.53,20.44-136.82-43.48-116.73-115.73,8.66-31.15,34.45-56.15,65.72-64.28,19.97-5.19,40.82-3.65,60,4.01,3.27,1.31,7.72,4.62,10.53,5.48,1.76.54,1.43-.24,1.48-1.47.12-2.83-.09-5.69,0-8.51h45v182h-45ZM835.14,167.87c0-26.57-21.54-48.11-48.11-48.11s-48.11,21.54-48.11,48.11,21.54,48.11,48.11,48.11,48.11-21.54,48.11-48.11Z"/>
+          <path d="M143,259v-10c-1.17-1.17-10.82,4.62-13.01,5.49-51.77,20.67-110-7.26-125.26-60.72C-15.64,122.43,50.44,57.77,121.22,78.28l21.77,8.72v-10h45v182h-45ZM143,223v-59.5c0-3.95-3.8-14.39-5.81-18.19-18.09-34.19-68.13-33.8-85.59.78-18.73,37.09,15.11,78.87,55.44,68.44,6.47-1.68,11.76-6.5,18.43-5.49,4.66.71,10.63,9.21,14.53,12.46.63.52,2.19,2.38,3,1.5Z"/>
+          <path d="M470.88,167.91c0,51.63-41.86,93.49-93.49,93.49s-93.49-41.86-93.49-93.49,41.86-93.49,93.49-93.49,93.49,41.86,93.49,93.49ZM425.47,167.95c0-26.58-21.55-48.13-48.13-48.13s-48.13,21.55-48.13,48.13,21.55,48.13,48.13,48.13,48.13-21.55,48.13-48.13Z"/>
+          <rect x="217" y="1" width="45" height="258"/>
+          <circle cx="929.3" cy="233.71" r="27.66"/>
+        </svg>
+        <div>Tool voor Top06 • Alle verwerking gebeurt lokaal in je browser</div>
+    </div>
 
-    &lt;script&gt;
+    <script>
         const { jsPDF } = window.jspdf;
         let selectedFiles = [];
 
@@ -144,30 +124,30 @@ div.main {
         const status = document.getElementById('status');
 
         // Click to select files
-        dropZone.addEventListener('click', () =&gt; fileInput.click());
+        dropZone.addEventListener('click', () => fileInput.click());
 
         // Drag and drop
-        dropZone.addEventListener('dragover', (e) =&gt; {
+        dropZone.addEventListener('dragover', (e) => {
             e.preventDefault();
             dropZone.classList.add('dragover');
         });
 
-        dropZone.addEventListener('dragleave', () =&gt; {
+        dropZone.addEventListener('dragleave', () => {
             dropZone.classList.remove('dragover');
         });
 
-        dropZone.addEventListener('drop', (e) =&gt; {
+        dropZone.addEventListener('drop', (e) => {
             e.preventDefault();
             dropZone.classList.remove('dragover');
             handleFiles(e.dataTransfer.files);
         });
 
-        fileInput.addEventListener('change', (e) =&gt; {
+        fileInput.addEventListener('change', (e) => {
             handleFiles(e.target.files);
         });
 
         function handleFiles(files) {
-            selectedFiles = Array.from(files).filter(f =&gt; f.name.endsWith('.txt'));
+            selectedFiles = Array.from(files).filter(f => f.name.endsWith('.txt'));
             updateFileList();
             convertBtn.disabled = selectedFiles.length === 0;
         }
@@ -176,9 +156,9 @@ div.main {
             fileList.innerHTML = '';
             if (selectedFiles.length === 0) return;
             
-            selectedFiles.forEach(file =&gt; {
+            selectedFiles.forEach(file => {
                 const li = document.createElement('li');
-                li.textContent = `â ${file.name}`;
+                li.textContent = `✓ ${file.name}`;
                 fileList.appendChild(li);
             });
         }
@@ -187,13 +167,13 @@ div.main {
             const lines = text.split('\n');
             const data = {};
             
-            lines.forEach(line =&gt; {
+            lines.forEach(line => {
                 // Split only on FIRST colon
                 const colonIndex = line.indexOf(':');
-                if (colonIndex &gt; -1) {
+                if (colonIndex > -1) {
                     const key = line.substring(0, colonIndex).trim();
                     const value = line.substring(colonIndex + 1).trim();
-                    if (key &amp;&amp; value) {
+                    if (key && value) {
                         data[key] = value;
                     }
                 }
@@ -203,7 +183,7 @@ div.main {
         }
 
         async function generateQRCode(text) {
-            return new Promise((resolve, reject) =&gt; {
+            return new Promise((resolve, reject) => {
                 // Create completely unique container
                 const containerId = 'qr-container-' + Date.now() + '-' + Math.random().toString(36).substring(2, 15);
                 const container = document.createElement('div');
@@ -223,7 +203,7 @@ div.main {
                     });
                     
                     // Wait for QR code to render
-                    setTimeout(() =&gt; {
+                    setTimeout(() => {
                         try {
                             const canvas = container.querySelector('canvas');
                             if (!canvas) {
@@ -321,7 +301,7 @@ div.main {
             return doc;
         }
 
-        convertBtn.addEventListener('click', async () =&gt; {
+        convertBtn.addEventListener('click', async () => {
             convertBtn.disabled = true;
             status.classList.remove('hidden');
             status.textContent = 'Bezig met verwerken...';
@@ -329,7 +309,7 @@ div.main {
             try {
                 const zip = new JSZip();
                 
-                for (let i = 0; i &lt; selectedFiles.length; i++) {
+                for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
                     status.textContent = `Verwerken: ${i + 1}/${selectedFiles.length} - ${file.name}`;
                     
@@ -353,18 +333,15 @@ div.main {
                 a.click();
                 URL.revokeObjectURL(url);
                 
-                status.textContent = `â Klaar! ${selectedFiles.length} PDFs gedownload als ZIP`;
+                status.textContent = `✓ Klaar! ${selectedFiles.length} PDFs gedownload als ZIP`;
                 
             } catch (error) {
-                status.textContent = `â Fout: ${error.message}`;
+                status.textContent = `✗ Fout: ${error.message}`;
                 console.error(error);
             } finally {
                 convertBtn.disabled = false;
             }
         });
-    &lt;/script&gt;
-&lt;/body&gt;
-&lt;/html&gt;</div>
+    </script>
 </body>
-<!--EndFragment-->
 </html>
