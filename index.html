@@ -16,7 +16,7 @@
             margin: 0 auto;
             background: #fafafa;
         }
-        h1 { font-size: 24px; margin-bottom: 10px; font-weight: 600; }
+        h1 { font-size: 24px; margin-bottom: 10px; }
         .subtitle { color: #666; font-size: 14px; margin-bottom: 30px; }
         .upload-area {
             border: 2px dashed #ddd;
@@ -25,7 +25,7 @@
             cursor: pointer;
             margin-bottom: 20px;
             background: #fff;
-            border-radius: 12px;
+            border-radius: 4px;
             transition: all 0.2s;
         }
         .upload-area:hover { border-color: #000; }
@@ -38,7 +38,7 @@
             font-size: 14px;
             cursor: pointer;
             width: 100%;
-            border-radius: 12px;
+            border-radius: 4px;
             font-weight: 500;
         }
         button:hover:not(:disabled) { background: #333; }
@@ -61,7 +61,7 @@
             padding: 12px;
             background: #fff;
             font-size: 14px;
-            border-radius: 12px;
+            border-radius: 4px;
             border: 1px solid #ddd;
         }
         .hidden { display: none; }
@@ -69,19 +69,16 @@
             margin-top: 40px;
             padding-top: 20px;
             border-top: 1px solid #ddd;
-            text-align: left;
+            text-align: center;
             font-size: 12px;
             color: #999;
         }
         .aloha-logo-footer {
-            width: 70px;
+            width: 120px;
             height: auto;
-            margin-bottom: 20px;
+            margin: 0 auto 12px;
             display: block;
             opacity: 0.6;
-        }
-        .upload-heading {
-          font-weight: 600;
         }
     </style>
 </head>
@@ -90,7 +87,7 @@
     <div class="subtitle">Voor LycaMobile eSIM bestanden</div>
     
     <div class="upload-area" id="dropZone">
-        <p class="upload-heading">Sleep TXT bestanden hierheen</p>
+        <p><strong>Sleep TXT bestanden hierheen</strong></p>
         <p style="font-size: 14px; color: #666; margin-top: 8px;">of klik om te selecteren</p>
         <input type="file" id="fileInput" accept=".txt" multiple class="hidden">
     </div>
@@ -110,7 +107,7 @@
           <rect x="217" y="1" width="45" height="258"/>
           <circle cx="929.3" cy="233.71" r="27.66"/>
         </svg>
-        <div>Tool voor Top06 • Alle verwerking gebeurt lokaal in je browser</div>
+        <div>Tool voor Top06 / SlimSim • Alle verwerking gebeurt lokaal in je browser</div>
     </div>
 
     <script>
@@ -164,22 +161,74 @@
         }
 
         function parseESIM(text) {
-            const lines = text.split('\n');
-            const data = {};
+            const lines = text.split('\n').filter(line => line.trim());
             
-            lines.forEach(line => {
-                // Split only on FIRST colon
-                const colonIndex = line.indexOf(':');
-                if (colonIndex > -1) {
-                    const key = line.substring(0, colonIndex).trim();
-                    const value = line.substring(colonIndex + 1).trim();
-                    if (key && value) {
-                        data[key] = value;
+            if (lines.length === 0) return [];
+            
+            // Check if it's the new format (starts with header or has tab-separated values)
+            const firstDataLine = lines.find(line => 
+                !line.startsWith('Var_Out:') && 
+                line.trim().length > 0
+            );
+            
+            const isNewFormat = firstDataLine && (
+                firstDataLine.includes('\t') || 
+                (firstDataLine.split(/\s+/).length >= 6 && firstDataLine.includes('LPA:'))
+            );
+            
+            if (isNewFormat) {
+                // New format - multiple eSIMs per file
+                const esims = [];
+                
+                for (let i = 0; i < lines.length; i++) {
+                    const line = lines[i].trim();
+                    
+                    // Skip header line
+                    if (line.startsWith('Var_Out:') || line.includes('ICCID/ACTIVATION')) {
+                        continue;
+                    }
+                    
+                    // Skip empty lines
+                    if (!line) continue;
+                    
+                    // Split by whitespace (spaces or tabs)
+                    const parts = line.split(/\s+/).filter(p => p.length > 0);
+                    
+                    console.log('Parsing line:', line);
+                    console.log('Parts:', parts);
+                    
+                    // Should have 6 parts: ICCID, LPA, PIN, PUK, PIN2, PUK2
+                    if (parts.length >= 6 && parts[1].startsWith('LPA:')) {
+                        const esimData = {
+                            ICCID: parts[0],
+                            Activation: parts[1],
+                            PIN: parts[2],
+                            PUK: parts[3],
+                            PIN2: parts[4],
+                            PUK2: parts[5]
+                        };
+                        console.log('Parsed eSIM:', esimData);
+                        esims.push(esimData);
                     }
                 }
-            });
-            
-            return data;
+                
+                console.log('Total eSIMs parsed:', esims.length);
+                return esims;
+            } else {
+                // Old format - single eSIM per file with key:value pairs
+                const data = {};
+                lines.forEach(line => {
+                    const colonIndex = line.indexOf(':');
+                    if (colonIndex > -1) {
+                        const key = line.substring(0, colonIndex).trim();
+                        const value = line.substring(colonIndex + 1).trim();
+                        if (key && value && !line.startsWith('Var_Out:')) {
+                            data[key] = value;
+                        }
+                    }
+                });
+                return Object.keys(data).length > 0 ? [data] : [];
+            }
         }
 
         async function generateQRCode(text) {
@@ -241,14 +290,15 @@
             
             // Debug: log activation code
             console.log('PDF voor:', filename);
-            console.log('Activation code:', esimData.Activation);
+            console.log('eSIM data:', esimData);
             
             // Title
             doc.setFontSize(20);
             doc.text('Lycamobile eSIM', 105, 20, { align: 'center' });
             
             // Generate QR Code
-            const qrDataUrl = await generateQRCode(esimData.Activation);
+            const activationCode = esimData.Activation || esimData.ACTIVATION_CODE;
+            const qrDataUrl = await generateQRCode(activationCode);
             doc.addImage(qrDataUrl, 'PNG', 55, 35, 100, 100);
             
             // Instructions
@@ -295,7 +345,7 @@
             doc.setFontSize(8);
             doc.text('Activatie Code:', 20, y);
             y += 5;
-            const activationLines = doc.splitTextToSize(esimData.Activation, 170);
+            const activationLines = doc.splitTextToSize(activationCode, 170);
             doc.text(activationLines, 20, y);
             
             return doc;
@@ -308,21 +358,33 @@
             
             try {
                 const zip = new JSZip();
+                let totalPDFs = 0;
                 
                 for (let i = 0; i < selectedFiles.length; i++) {
                     const file = selectedFiles[i];
-                    status.textContent = `Verwerken: ${i + 1}/${selectedFiles.length} - ${file.name}`;
+                    status.textContent = `Bestand verwerken: ${i + 1}/${selectedFiles.length} - ${file.name}`;
                     
                     const text = await file.text();
-                    const esimData = parseESIM(text);
-                    const pdf = await createPDF(esimData, file.name);
+                    const esimArray = parseESIM(text);
                     
-                    const pdfBlob = pdf.output('blob');
-                    const pdfFilename = file.name.replace('.txt', '.pdf');
-                    zip.file(pdfFilename, pdfBlob);
+                    // Process each eSIM in the file
+                    for (let j = 0; j < esimArray.length; j++) {
+                        const esimData = esimArray[j];
+                        
+                        status.textContent = `PDF ${totalPDFs + 1} genereren - ICCID: ${esimData.ICCID?.substring(0, 10)}...`;
+                        
+                        const pdf = await createPDF(esimData, `${file.name}_${j}`);
+                        
+                        const pdfBlob = pdf.output('blob');
+                        // Use ICCID as filename for better identification
+                        const pdfFilename = `esim_${esimData.ICCID || totalPDFs + 1}.pdf`;
+                        zip.file(pdfFilename, pdfBlob);
+                        
+                        totalPDFs++;
+                    }
                 }
                 
-                status.textContent = 'PDFs aanmaken...';
+                status.textContent = 'ZIP bestand aanmaken...';
                 const zipBlob = await zip.generateAsync({ type: 'blob' });
                 
                 // Download ZIP
@@ -333,7 +395,7 @@
                 a.click();
                 URL.revokeObjectURL(url);
                 
-                status.textContent = `✓ Klaar! ${selectedFiles.length} PDFs gedownload als ZIP`;
+                status.textContent = `✓ Klaar! ${totalPDFs} PDFs gedownload als ZIP`;
                 
             } catch (error) {
                 status.textContent = `✗ Fout: ${error.message}`;
