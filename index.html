@@ -163,36 +163,35 @@
             });
         }
 
+        function isHeaderLine(line) {
+            const trimmed = line.trim();
+            return trimmed.startsWith('Var_Out:') || trimmed.includes('ICCID/ACTIVATION');
+        }
+
         function parseESIM(text) {
             const lines = text.split('\n').filter(line => line.trim());
             
             if (lines.length === 0) return [];
             
-            // Check if it's the new format (starts with header or has tab-separated values)
+            // Find the first actual data line (skip any header lines)
             const firstDataLine = lines.find(line => 
-                !line.startsWith('Var_Out:') && 
-                line.trim().length > 0
+                !isHeaderLine(line) && line.trim().length > 0
             );
             
-            const isNewFormat = firstDataLine && (
+            const isMultiFormat = firstDataLine && (
                 firstDataLine.includes('\t') || 
-                (firstDataLine.split(/\s+/).length >= 6 && firstDataLine.includes('LPA:'))
+                (firstDataLine.trim().split(/\s+/).length >= 6 && firstDataLine.includes('LPA:'))
             );
             
-            if (isNewFormat) {
-                // New format - multiple eSIMs per file
+            if (isMultiFormat) {
+                // Multi-eSIM format: each line has ICCID LPA:... PIN PUK PIN2 PUK2
                 const esims = [];
                 
                 for (let i = 0; i < lines.length; i++) {
                     const line = lines[i].trim();
                     
-                    // Skip header line
-                    if (line.startsWith('Var_Out:') || line.includes('ICCID/ACTIVATION')) {
-                        continue;
-                    }
-                    
-                    // Skip empty lines
-                    if (!line) continue;
+                    // Skip header lines and empty lines
+                    if (isHeaderLine(line) || !line) continue;
                     
                     // Split by whitespace (spaces or tabs)
                     const parts = line.split(/\s+/).filter(p => p.length > 0);
